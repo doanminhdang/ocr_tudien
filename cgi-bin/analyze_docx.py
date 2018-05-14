@@ -41,7 +41,7 @@ path.append(TOP_DIR+'/'+MODULE_DIR)
 
 #import Textparser
 #import Pdfsplitter
-import Csv_Excel
+import Read_OCR
 
 def create_user_dir(base_dir):
     """Create directory for the request, with the structure
