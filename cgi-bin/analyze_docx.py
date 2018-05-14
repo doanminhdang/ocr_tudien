@@ -179,16 +179,16 @@ print ""
 print "<html>"
 print "<head>"
 print "<title>Kết quả xử lý file văn bản</title>"
+print "<meta charset=\"utf-8\"/>"
 print "</head>"
 print "<body>"
-print "<h1>Results of aligner and comparer</h1>"
+print "<h1>Kết quả xử lý file văn bản</h1>"
 print "<h2>%s</h2>" % (message_file_1)
 if delete_data != 'yes' and file_input_1:
-    print "<h2>Link to the uploaded file: <a href=\"%s\">%s</a></h2>" % (url_file_1, url_file_1)
-#print "<h2>Series of PDF pages to compare are %s and %s</h2>" % (page_series_1, page_series_2)
+    print "<h2>Link của file đã tải lên: <a href=\"%s\">%s</a></h2>" % (url_file_1, url_file_1)
 if proceed_flag:
-    print "<h2>Link to the RESULT file: <a href=\"%s\">%s</a></h2>" % (url_file_export, url_file_export)
-    print "<h2>Link to the STATISTICS file: <a href=\"%s\">%s</a></h2>" % (url_file_log, url_file_log)
+    print "<h2>Link file kết quả thu về: <a href=\"%s\">%s</a></h2>" % (url_file_export, url_file_export)
+    print "<h2>Link file thống kê: <a href=\"%s\">%s</a></h2>" % (url_file_log, url_file_log)
 if not delete_data != 'yes':
     print "<h2>Source data was deleted on the server.</h2>"
 print "</body>"
