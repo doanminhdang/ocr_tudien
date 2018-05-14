@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<title>Bóc tách dữ liệu từ điển</title>
+<h1>Bóc tách dữ liệu file DOCX để cho vào file CSV</h1>
+<h2>Hãy chọn file DOCX để upload:</h2>
+<form action="../cgi-bin/analyze_docx.py" method="post" enctype="multipart/form-data">
+IMPORTANT: Do you want to DELETE SOURCE DATA on the server? (the final results will be kept for few weeks on the server anyway)<br />
+<input type="radio" name="delete_data" value="yes" /> (default) Yes, delete my source data after finishing the task
+<input type="radio" name="delete_data" value="no" /> No, leave my data on server for later inspection and debugging
+<br />
+<br />
+File to process: <input type="file" name="upload1" />
+<select name="language1">
+</select>
+
+<input type="submit" value="Submit info"/></form>
+<!-- Run from Linux terminal in the folder containing cgi-bin:
+python3 -m http.server --bind localhost --cgi 8000
+or with Python2:
+python -m CGIHTTPServer 8000 .
+Then access this web page on localhost:8000
+ -->
