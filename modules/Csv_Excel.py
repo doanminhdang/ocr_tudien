@@ -3,15 +3,20 @@
 # Date: 2017-09-21
 # Note: Compatible to Python 2 only
 
-#from sys import path
+from sys import path
+path.append('../ocr_tudien/modules/xlwt')  # for web
+path.append('../ocr_tudien/modules/xlrd')  # for web
+
 #path.append('./xlrd-1.1.0')  # Download and untar module xlrd from https://pypi.python.org/pypi/xlrd
 #path.append('./xlwt-1.3.0')  # Download and untar module xlrd from https://pypi.python.org/pypi/xlwt
 # Note: xlrd-1.1.0 and xlwt-1.3.0 must be put in two places:
 #   In the top directory, so that it is called by the cgi-bin script
 #   In the directory modules, so that it is called by script running in terminal
-#ath.append('../ocr_tudien/xlrd-1.1.0')  # for web
-#path.append('../ocr_tudien/xlwt-1.3.0')  # for web
 
+import csv
+import xlrd
+import xlwt
+import re
 
 def detect_encoding(fileName):
 
@@ -29,8 +34,8 @@ def xls_to_csv(xlsFile, csvFile, sheetName = 'Sheet1'):
     Example:
     xls_to_csv('v27_002-v30_002.xls', 'v27_002-v30_002.csv', 'Sheet1')
     """
-    import xlrd
-    import csv
+    #import xlrd
+    #import csv
 
     work_book = xlrd.open_workbook(xlsFile)
     work_sheet = work_book.sheet_by_name(sheetName)
@@ -47,9 +52,9 @@ def csv_to_xls(csvFile, xlsFile, sheetName = 'Sheet1'):
     Example:
     csv_to_xls('v27_002-v30_002.csv', 'v27_002-v30_002.xls', 'Sheet1')
     """
-    import csv
-    import xlwt
-    import re
+    #import csv
+    #import xlwt
+    #import re
 
     int_re = re.compile(r'^-?\d+$')
     float_re = re.compile(r'^-?\d+\.\d+$')

@@ -273,7 +273,7 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
         for item in out_messages:
             txtfile.write("%s\n" % item)
     
-    excelFile = exportFile[:-4] + '.xls'
-    Csv_Excel.csv_to_xls(exportFile, excelFile)
+    #excelFile = exportFile[:-4] + '.xls'
+    #Csv_Excel.csv_to_xls(exportFile, excelFile)
 
 

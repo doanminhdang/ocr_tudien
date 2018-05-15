@@ -39,9 +39,8 @@ ABS_TOP_DIR = cgi_bin_dir.replace('/cgi-bin', '/ocr_tudien').rstrip('/')
 from sys import path
 path.append(TOP_DIR+'/'+MODULE_DIR)
 
-#import Textparser
-#import Pdfsplitter
 import Read_OCR
+import Csv_Excel
 
 def create_user_dir(base_dir):
     """Create directory for the request, with the structure
@@ -146,16 +145,18 @@ if file_input_1:
 else:
     message_file_1 = 'Input file is not an accepted file. It was not uploaded.'
 
-proceed_flag = file_input_1# and os.path.splitext(file_input_1)[1]==os.path.splitext(file_input_2)[1]
+proceed_flag = file_input_1
 
 if proceed_flag:
     # Processing text files DOCX
-    export_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '.csv')
-    url_file_export = BASE_URL+'/'+DATA_DIR+'/'+relative_user_dir+'/'+OUTPUT_DIR+'/'+file_input_1 + '.csv'
+    csv_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '.csv')
+    export_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '.xls')
+    url_file_export = BASE_URL+'/'+DATA_DIR+'/'+relative_user_dir+'/'+OUTPUT_DIR+'/'+file_input_1 + '.xls'
     log_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '_stat.txt')
     url_file_log = BASE_URL+'/'+DATA_DIR+'/'+relative_user_dir+'/'+OUTPUT_DIR+'/'+file_input_1 + '_stat.txt'
     
-    Read_OCR.readocr(file_1_path, export_file_path, log_file_path)
+    Read_OCR.readocr(file_1_path, csv_file_path, log_file_path)
+    Csv_Excel.csv_to_xls(csv_file_path, export_file_path)
 
     # Result file to be given back
     # os.system('rm ../data/results.zip')
