@@ -10,6 +10,7 @@ Written for Python 2.7
 
 from __future__ import unicode_literals
 import docx
+import Csv_Excel
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -271,5 +272,8 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
     with open(logFile, 'wt') as txtfile:
         for item in out_messages:
             txtfile.write("%s\n" % item)
+    
+    excelFile = exportFile[:-4] + '.xls'
+    Csv_Excel.csv_to_xls(exportFile, excelFile)
 
 
