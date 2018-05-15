@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+Parse a DOCX file to get dictionary words and output glossary table
+
 Created on Mon May 14 2018
 
 @author: dang
 
-Written for Python 2.7
+Written for Python 2.6
 """
 
 from __future__ import unicode_literals
@@ -20,18 +22,20 @@ def check_series(text_list, set_list):
     return in_list
 
 def check_field(text_list):
-    with open('word_fields.txt', 'rt') as listfile:
+    with open('../ocr_tudien/modules/word_fields.txt', 'rt') as listfile:
         set_list = listfile.read().split('\n')
         if set_list[-1] == '':
             del(set_list[-1])
     in_list = check_series(text_list, set_list)
+    return in_list
 
 def check_type(text_list):
-    with open('word_types.txt', 'rt') as listfile:
+    with open('../ocr_tudien/modules/word_types.txt', 'rt') as listfile:
         set_list = listfile.read().split('\n')
         if set_list[-1] == '':
             del(set_list[-1])
     in_list = check_series(text_list, set_list)
+    return in_list
 
 def read_format(format_toggle_bolds, format_toggle_italics, default_bold, default_italic):
     word_format_bolds = [default_bold for item in format_toggle_bolds]
@@ -192,9 +196,6 @@ def analyze_line(word_texts, wordcase_capitals, word_format_bolds, word_format_i
     type_word = [word.strip().strip(',') for word in type_word]
     field_word = [word.strip().strip(',') for word in field_word]
     out_message = 'Line has been analyzed successfully to ' + str(item+1) + ' item(s).'
-    for k in range(len(de_word)):
-        if en_word[k] == '' or vi_word[k] == '':
-            out_message += ' Attention: this entry does misses English or Vietnamese word(s): ' + de_word[k]
     return de_word, type_word, field_word, en_word, vi_word, out_message
 
 ## Tests:
@@ -254,9 +255,19 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
     field_words = []
     out_messages = []
     
+    number_items_in_line = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    
+    number_blank_lines = 0
+    number_type_issues = 0
+    number_field_issues = 0
+    number_en_issues = 0
+    number_vi_issues = 0
+    number_total_item_issues = 0
+    
     doc = docx.Document(inputFile)
 
-    for line in doc.paragraphs:
+    for k in range(len(doc.paragraphs)):
+        line = doc.paragraphs[k]
         paragraph_style_bold = line.style.font.bold
         paragraph_style_italic = line.style.font.italic
         word_texts = [part.text.strip() for part in line.runs if part.text.strip() != '']
@@ -275,9 +286,30 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
         vi_words.extend(vi_word)
         type_words.extend(type_word)
         field_words.extend(field_word)
-        out_messages.append(out_message)
-    
-    # Note the meaning of line.runs[0].style.font.bold: (and line.runs[0].style.font.italic)
+        
+        # Accumulative statistics
+        if line.text.strip() == '':
+            number_blank_lines += 1
+        number_items_in_line[len(de_word)%11] += 1
+        
+        is_good_type = check_type(type_word)
+        is_good_field = check_field(field_word)
+        for k_entry in range(len(de_word)):
+            if is_good_type[k_entry] != True:
+                number_type_issues += 1
+            if is_good_field[k_entry] != True:
+                number_field_issues += 1
+            if en_word[k_entry] == '':
+                number_en_issues += 1
+            if vi_word[k_entry] == '':
+                number_vi_issues += 1
+            if is_good_type[k_entry] != True or is_good_field[k_entry] != True or en_word[k_entry] == '' or vi_word[k_entry] == '':
+                number_total_item_issues += 1
+                out_message += ' Attention - suspected problem with this entry: ' + de_word[k_entry] + ' - ' + type_word[k_entry] + ' - ' + field_word[k_entry] + ' - ' + en_word[k_entry] + ' - ' + vi_word[k_entry] + '.'
+        
+        out_messages.append('Line ' + str(k+1) + ': ' + out_message)
+        
+        # Note the meaning of line.runs[0].style.font.bold: (and line.runs[0].style.font.italic)
         # line.runs[0].style.font.bold is "toggle" for line.style.font.bold, i.e.
         # if line.style.font.bold == True, and line.runs[0].style.font.bold == True
         # then the real style is False. Probably the XOR operator of the two booleans works. 
@@ -289,6 +321,29 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
 
     WriteTableCsv(exportFile, table)
     with open(logFile, 'wt') as txtfile:
+        txtfile.write("Total number of lines processed: %d\n" % len(doc.paragraphs))
+        txtfile.write("  with number of blank lines: %d\n" % number_blank_lines)
+        txtfile.write("  \n*Number of lines failed to process (0 item): %d\n\n" % number_items_in_line[0])
+        txtfile.write("  Number of lines with 1 item: %d\n" % number_items_in_line[1])
+        txtfile.write("  Number of lines with 2 items: %d\n" % number_items_in_line[2])
+        txtfile.write("  Number of lines with 3 items: %d\n" % number_items_in_line[3])
+        txtfile.write("  Number of lines with 4 items: %d\n" % number_items_in_line[4])
+        txtfile.write("  Number of lines with 5 items: %d\n" % number_items_in_line[5])
+        txtfile.write("  Number of lines with 6 items: %d\n" % number_items_in_line[6])
+        txtfile.write("  Number of lines with 7 items: %d\n" % number_items_in_line[7])
+        txtfile.write("  Number of lines with 8 items: %d\n" % number_items_in_line[8])
+        txtfile.write("  Number of lines with 9 items: %d\n" % number_items_in_line[9])
+        txtfile.write("  Number of lines with 10 items: %d\n" % number_items_in_line[10])
+                
+        txtfile.write("\nTotal items obtained: %d\n" % len(de_words))
+        txtfile.write("\n*Number of items with issues: %d\n" % number_total_item_issues)
+        txtfile.write("  in which, there are:\n")
+        txtfile.write("    + %d items with awkward type\n" % number_type_issues)
+        txtfile.write("    + %d items with awkward field\n" % number_field_issues)
+        txtfile.write("    + %d items without English word\n" % number_en_issues)
+        txtfile.write("    + %d items without Vietnamese word\n" % number_vi_issues)
+        txtfile.write("\n-----\n\n")
+        
         for item in out_messages:
             txtfile.write("%s\n" % item)
     
