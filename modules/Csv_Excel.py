@@ -3,9 +3,9 @@
 # Date: 2017-09-21
 # Note: Compatible to Python 2 only
 
-from sys import path
-path.append('../ocr_tudien/modules/xlwt')  # for web
-path.append('../ocr_tudien/modules/xlrd')  # for web
+#from sys import path
+#path.append('../ocr_tudien/modules/xlwt')  # for web
+#path.append('../ocr_tudien/modules/xlrd')  # for web
 
 #path.append('./xlrd-1.1.0')  # Download and untar module xlrd from https://pypi.python.org/pypi/xlrd
 #path.append('./xlwt-1.3.0')  # Download and untar module xlrd from https://pypi.python.org/pypi/xlwt

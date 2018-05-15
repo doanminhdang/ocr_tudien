@@ -10,7 +10,6 @@ Written for Python 2.7
 
 from __future__ import unicode_literals
 import docx
-import Csv_Excel
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
