@@ -15,12 +15,30 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 import csv
 
+def check_series(text_list, set_list):
+    in_list = [word in set_list for word in text_list]
+    return in_list
+
+def check_field(text_list):
+    with open('word_fields.txt', 'rt') as listfile:
+        set_list = listfile.read().split('\n')
+        if set_list[-1] == '':
+            del(set_list[-1])
+    in_list = check_series(text_list, set_list)
+
+def check_type(text_list):
+    with open('word_types.txt', 'rt') as listfile:
+        set_list = listfile.read().split('\n')
+        if set_list[-1] == '':
+            del(set_list[-1])
+    in_list = check_series(text_list, set_list)
+
 def read_format(format_toggle_bolds, format_toggle_italics, default_bold, default_italic):
     word_format_bolds = [default_bold for item in format_toggle_bolds]
     word_format_italics = [default_italic for item in format_toggle_italics]
     for k in range(len(format_toggle_bolds)):
         # Using style name doesn't work with different languages, example:
-        # English Word file: Bold, Not Italic, German: Fett,Nicht kursiv
+        # English Word file: Bold, Not Italic, German: Fett, Nicht kursiv
         if format_toggle_bolds[k] == True:
             word_format_bolds[k] = not word_format_bolds[k]
     for k in range(len(format_toggle_italics)):
@@ -122,6 +140,9 @@ def analyze_line(word_texts, wordcase_capitals, word_format_bolds, word_format_i
     After a CAPITAL word: lowercase non-italic words are English, lowercase italic words are Vietnamese.
     Split items for different FIELDS.
     Split items for new English meaning (the precedent word is Vietnamese).
+    
+    Some special cases: 
+    ABC v_tắt (automatische Helligkeitsregelung) TV ABC (automatic brightness control) (sự) điều chỉnh độ chói tự động
     """
     de_word = []
     en_word = []
@@ -224,7 +245,6 @@ def analyze_line(word_texts, wordcase_capitals, word_format_bolds, word_format_i
 #print(en_word)
 #print(vi_word)
 
-# Main operation:
 def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
 
     de_words = []
@@ -275,4 +295,11 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
     #excelFile = exportFile[:-4] + '.xls'
     #Csv_Excel.csv_to_xls(exportFile, excelFile)
 
-
+# Main operation, when calling: python Read_OCR.py input.docx output.csv
+if __name__ == "__main__":
+    inputFile = str(sys.argv[1])
+    if len(sys.argv)>2:
+        exportFile = str(sys.argv[2])
+        readocr(inputFile, exportFile)
+    else:
+        readocr(inputFile)

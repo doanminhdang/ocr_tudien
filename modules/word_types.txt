@@ -1,0 +1,17 @@
+abbr
+adj
+adv
+f
+f pl
+m
+m pl
+n
+n pl
+nt
+nt pl
+phr
+pref
+vi
+v refl
+vt
+vti
