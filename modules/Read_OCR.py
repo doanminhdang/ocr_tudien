@@ -22,7 +22,7 @@ def check_series(text_list, set_list):
     return in_list
 
 def check_field(text_list):
-    with open('../ocr_tudien/modules/word_fields.txt', 'rt') as listfile:
+    with open('word_fields.txt', 'rt') as listfile:
         set_list = listfile.read().split('\n')
         if set_list[-1] == '':
             del(set_list[-1])
@@ -30,24 +30,42 @@ def check_field(text_list):
     return in_list
 
 def check_type(text_list):
-    with open('../ocr_tudien/modules/word_types.txt', 'rt') as listfile:
+    with open('word_types.txt', 'rt') as listfile:
         set_list = listfile.read().split('\n')
         if set_list[-1] == '':
             del(set_list[-1])
     in_list = check_series(text_list, set_list)
     return in_list
 
-def read_format(format_toggle_bolds, format_toggle_italics, default_bold, default_italic):
-    word_format_bolds = [default_bold for item in format_toggle_bolds]
-    word_format_italics = [default_italic for item in format_toggle_italics]
-    for k in range(len(format_toggle_bolds)):
-        # Using style name doesn't work with different languages, example:
-        # English Word file: Bold, Not Italic, German: Fett, Nicht kursiv
-        if format_toggle_bolds[k] == True:
-            word_format_bolds[k] = not word_format_bolds[k]
-    for k in range(len(format_toggle_italics)):
-        if format_toggle_italics[k] == True:
-            word_format_italics[k] = not word_format_italics[k]
+def read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics):
+    """Detect the character properties (bold, italic) based on info of the hierarchy:
+       paragraph_style_bold (single value, from line.style.font.bold): on top level of the hierarchy, can be "None", "True", or "False"
+       character_style_bolds (array, from docx line.runs[0].style.font.bold): second level, it inherit upper level if "None", override if "True" or "False"
+       character_font_bolds (array, from docx line.runs[0].font.bold): third level, directly applied to character if "True" or "False", inherit if "None"
+    """
+    # Using style name doesn't work with different languages, example:
+    # English Word file: Bold, Not Italic, German: Fett, Nicht kursiv
+    if paragraph_style_bold == None:
+        word_format_bolds = [False for item in character_font_bolds]
+    else:
+        word_format_bolds = [paragraph_style_bold for item in character_font_bolds]
+    for k in range(len(character_style_bolds)):
+
+        if character_style_bolds[k] != None:
+            word_format_bolds[k] = character_style_bolds[k]
+        if character_font_bolds[k] != None:
+            word_format_bolds[k] = character_font_bolds[k]
+    
+    if paragraph_style_italic == None:
+        word_format_italics = [False for item in character_font_italics]
+    else:
+        word_format_italics = [paragraph_style_italic for item in character_font_italics]
+    for k in range(len(character_style_italics)):
+        if character_style_italics[k] != None:
+            word_format_italics[k] = character_style_italics[k]
+        if character_font_italics[k] != None:
+            word_format_italics[k] = character_font_italics[k]
+    
     return word_format_bolds, word_format_italics
 
 def split_capital(phrase):
@@ -56,6 +74,9 @@ def split_capital(phrase):
     If a capital word is after a small word, it is NOT marked capital.
     """
     format_capital = []
+    #words = [phrase]
+    #format_capital.append(words[0].isupper())
+    
     words = phrase.split()
     flag_prev_word_capital = True
     for k in range(len(words)):
@@ -199,20 +220,25 @@ def analyze_line(word_texts, wordcase_capitals, word_format_bolds, word_format_i
     return de_word, type_word, field_word, en_word, vi_word, out_message
 
 ## Tests:
+##import docx
+##inputFile = 'abc.docx'
+##doc = docx.Document(inputFile)
 ##line = doc.paragraphs[2]
 ##line = doc.paragraphs[16]
 ##line = doc.paragraphs[19]
 ##line = doc.paragraphs[25]
 #
 #line = doc.paragraphs[7]
-##for phrase in line.runs:
-##   print(phrase.text)
-##   print(line.style.name)
-##   print(line.style.font.bold)
-##   print(line.style.font.italic)
-##   print(phrase.style.name)
-##   print(phrase.style.font.bold)
-##   print(phrase.style.font.italic)
+#print line.text
+#for phrase in line.runs:
+  #print(phrase.text)
+  #print(line.style.name)
+  #print(line.style.font.bold)
+  #print(line.style.font.italic)
+  #print(phrase.style.name)
+  #print(phrase.style.font.name)
+  #print(phrase.style.font.bold)
+  #print(phrase.style.font.italic)
 #
 #paragraph_style_bold = line.style.font.bold
 #paragraph_style_italic = line.style.font.italic
@@ -270,10 +296,12 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
         line = doc.paragraphs[k]
         paragraph_style_bold = line.style.font.bold
         paragraph_style_italic = line.style.font.italic
-        word_texts = [part.text.strip() for part in line.runs if part.text.strip() != '']
-        word_style_bolds = [part.style.font.bold for part in line.runs if part.text.strip() != '']
-        word_style_italics = [part.style.font.italic for part in line.runs if part.text.strip() != '']
-        word_format_bolds, word_format_italics = read_format(word_style_bolds, word_style_italics, paragraph_style_bold, paragraph_style_italic)
+        word_texts = [part.text for part in line.runs if part.text.strip() != '']
+        character_style_bolds = [part.style.font.bold for part in line.runs if part.text.strip() != '']
+        character_style_italics = [part.style.font.italic for part in line.runs if part.text.strip() != '']
+        character_font_bolds = [part.font.bold for part in line.runs if part.text.strip() != '']
+        character_font_italics = [part.font.italic for part in line.runs if part.text.strip() != '']
+        word_format_bolds, word_format_italics = read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics)
         #print(word_texts)
         newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = re_parse(word_texts, word_format_bolds, word_format_italics)
         #print(newword_texts)    
@@ -309,10 +337,21 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
         
         out_messages.append('Line ' + str(k+1) + ': ' + out_message)
         
-        # Note the meaning of line.runs[0].style.font.bold: (and line.runs[0].style.font.italic)
-        # line.runs[0].style.font.bold is "toggle" for line.style.font.bold, i.e.
-        # if line.style.font.bold == True, and line.runs[0].style.font.bold == True
-        # then the real style is False. Probably the XOR operator of the two booleans works. 
+        # Note the meaning of line.style.font.bold, line.runs[0].style.font.bold, and line.runs[0].font.bold:
+        # line.style.font.bold: on top level of the hierarchy
+        # line.runs[0].style.font.bold: second level, it inherit upper level if "None", override if "True" or "False"
+        # line.runs[0].font.bold: third level, directly applied to character if "True" or "False", inherit if "None"
+        #
+        # http://python-docx.readthedocs.io/en/latest/user/styles-using.html
+        # Many font properties are tri-state, meaning they can take the values True, False, and None.
+        # True means the property is “on”, False means it is “off”.
+        # Conceptually, the None value means “inherit”. 
+        # Because a style exists in an inheritance hierarchy, it is important 
+        # to have the ability to specify a property at the right place in the hierarchy,
+        # generally as far up the hierarchy as possible.
+        # For example, if all headings should be in the Arial typeface,
+        # it makes more sense to set that property on the Heading 1 style
+        # and have Heading 2 inherit from Heading 1.
     
     # Later: output directly the result from each line to the CSV file
     table = []
