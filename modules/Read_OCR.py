@@ -372,7 +372,7 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
                 number_vi_issues += 1
             if is_good_type[k_entry] != True or is_good_field[k_entry] != True or en_word[k_entry] == '' or vi_word[k_entry] == '':
                 number_total_item_issues += 1
-                out_message += ' Attention - suspected problem with this entry: ' + de_word[k_entry] + ' - ' + type_word[k_entry] + ' - ' + field_word[k_entry] + ' - ' + en_word[k_entry] + ' - ' + vi_word[k_entry] + '.'
+                out_message += ' Attention - suspected problem with this item: ' + de_word[k_entry] + ' - ' + type_word[k_entry] + ' - ' + field_word[k_entry] + ' - ' + en_word[k_entry] + ' - ' + vi_word[k_entry] + '.'
         
         out_messages.append('Line ' + str(k+1) + ': ' + out_message)
         
