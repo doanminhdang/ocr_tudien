@@ -11,7 +11,9 @@ nt
 nt pl
 phr
 pref
+prep
 vi
 v refl
 vt
 vti
+v_tắt

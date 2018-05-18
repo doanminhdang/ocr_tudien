@@ -16,13 +16,14 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
 import csv
+import re
 
 def check_series(text_list, set_list):
     in_list = [word in set_list for word in text_list]
     return in_list
 
 def check_field(text_list):
-    with open('word_fields.txt', 'rt') as listfile:
+    with open('../ocr_tudien/word_fields.txt', 'rt') as listfile:
         set_list = listfile.read().split('\n')
         if set_list[-1] == '':
             del(set_list[-1])
@@ -30,7 +31,7 @@ def check_field(text_list):
     return in_list
 
 def check_type(text_list):
-    with open('word_types.txt', 'rt') as listfile:
+    with open('../ocr_tudien/word_types.txt', 'rt') as listfile:
         set_list = listfile.read().split('\n')
         if set_list[-1] == '':
             del(set_list[-1])
@@ -77,7 +78,10 @@ def split_capital(phrase):
     #words = [phrase]
     #format_capital.append(words[0].isupper())
     
-    words = phrase.split()
+    #words = phrase.split()
+    re_split_result = re.split('(\W)', phrase)
+    words = list(filter(None, re_split_result))
+    
     flag_prev_word_capital = True
     for k in range(len(words)):
         if words[k].isupper() and flag_prev_word_capital:
@@ -96,7 +100,7 @@ def merge_similar_series(words, case_capital, format_bold, format_italic):
         if newcase_capital[k] == newcase_capital[k-1] \
         and newformat_bold[k] == newformat_bold[k-1] \
         and newformat_italic[k] == newformat_italic[k-1]: 
-            newwords[k-1] = ' '.join([newwords[k-1], newwords[k]])
+            newwords[k-1] = ''.join([newwords[k-1], newwords[k]])
             del newwords[k]
             del newcase_capital[k]
             del newformat_bold[k]
@@ -113,7 +117,7 @@ def merge_with_comment_phrase(words, case_capital, format_bold, format_italic):
     newformat_italic = list(format_italic)
     for k in range(len(words)-1,0,-1):
         if len(newwords[k].strip(','))>0 and newwords[k].strip(',')[0]=='(' and newwords[k].strip(',')[-1]==')':
-            newwords[k-1] = ' '.join([newwords[k-1], newwords[k]])
+            newwords[k-1] = ''.join([newwords[k-1], newwords[k]])
             del newwords[k]
             del newcase_capital[k]
             del newformat_bold[k]
@@ -133,7 +137,13 @@ def re_parse(word_texts, word_format_bolds, word_format_italics):
     newwordcase_capitals = []
     newword_format_bolds = []
     newword_format_italics = []
-    for k in range(len(word_texts)):
+    # first word is assumed German, do not need to split capital
+    if len(word_texts)>0:
+        newword_texts.append(word_texts[0])
+        newwordcase_capitals.append(False)
+        newword_format_bolds.append(word_format_bolds[0])
+        newword_format_italics.append(word_format_italics[0])
+    for k in range(1, len(word_texts)):
         phrase = word_texts[k]
         words, wordcase_capital = split_capital(phrase)
         newword_texts.extend(words)
@@ -174,13 +184,26 @@ def analyze_line(word_texts, wordcase_capitals, word_format_bolds, word_format_i
     vi_word = []
     type_word = []
     field_word = []
+    out_message = ''
+    #out_message = '-'.join(word_texts)
+    #out_message += '\nCapital: '
+    #out_message += '-'.join([str(item) for item in wordcase_capitals])
+    #out_message += '\nBold: '
+    #out_message += '-'.join([str(item) for item in word_format_bolds])
+    #out_message += '\nItalic: '
+    #out_message += '-'.join([str(item) for item in word_format_italics])
+    #out_message += '\n'
+    
+    if ''.join(word_texts).strip() == '':
+        out_message += 'Blank line, skipped.'
+        return de_word, type_word, field_word, en_word, vi_word, out_message
     if len(word_texts) < 4:
-        out_message = 'Line has less than 4 elements, skipped.'
+        out_message += 'ERROR: Line has less than 4 elements, skipped.'
         if len(word_texts) >= 1:
             out_message += ' This line starts with: ' + word_texts[0]
         return de_word, type_word, field_word, en_word, vi_word, out_message
     if wordcase_capitals[2] != True:
-        out_message = '3rd word is not CAPITAL, syntax not compatible, skipped.'
+        out_message += 'ERROR: 3rd word is not CAPITAL, syntax not compatible, skipped.'
         out_message += ' This line starts with: ' + word_texts[0]
         return de_word, type_word, field_word, en_word, vi_word, out_message
     item = 0
@@ -216,7 +239,7 @@ def analyze_line(word_texts, wordcase_capitals, word_format_bolds, word_format_i
     vi_word = [word.strip().strip(',') for word in vi_word]
     type_word = [word.strip().strip(',') for word in type_word]
     field_word = [word.strip().strip(',') for word in field_word]
-    out_message = 'Line has been analyzed successfully to ' + str(item+1) + ' item(s).'
+    out_message += 'Line has been analyzed successfully to ' + str(item+1) + ' item(s).'
     return de_word, type_word, field_word, en_word, vi_word, out_message
 
 ## Tests:
@@ -296,11 +319,27 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
         line = doc.paragraphs[k]
         paragraph_style_bold = line.style.font.bold
         paragraph_style_italic = line.style.font.italic
-        word_texts = [part.text for part in line.runs if part.text.strip() != '']
-        character_style_bolds = [part.style.font.bold for part in line.runs if part.text.strip() != '']
-        character_style_italics = [part.style.font.italic for part in line.runs if part.text.strip() != '']
-        character_font_bolds = [part.font.bold for part in line.runs if part.text.strip() != '']
-        character_font_italics = [part.font.italic for part in line.runs if part.text.strip() != '']
+        word_texts = [part.text for part in line.runs]
+        character_style_bolds = [part.style.font.bold for part in line.runs]
+        character_style_italics = [part.style.font.italic for part in line.runs]
+        character_font_bolds = [part.font.bold for part in line.runs]
+        character_font_italics = [part.font.italic for part in line.runs]
+        for k_item in range(len(word_texts)-1, 0, -1):
+            while len(word_texts[k_item])>0 and word_texts[k_item][0] == ',':
+                word_texts[k_item-1] += ','
+                word_texts[k_item] = word_texts[k_item][1:]
+        for k_item in range(len(word_texts)-1, 0, -1):
+            while len(word_texts[k_item])>0 and word_texts[k_item][0] == ' ':
+                word_texts[k_item-1] += ' '
+                word_texts[k_item] = word_texts[k_item][1:]
+        for k_item in range(len(word_texts)-1, 0, -1):
+            if word_texts[k_item].strip() == '':
+                word_texts[k_item-1] = ''.join([word_texts[k_item-1], word_texts[k_item]])
+                del word_texts[k_item]
+                del character_style_bolds[k_item]
+                del character_style_italics[k_item]
+                del character_font_bolds[k_item]
+                del character_font_italics[k_item]
         word_format_bolds, word_format_italics = read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics)
         #print(word_texts)
         newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = re_parse(word_texts, word_format_bolds, word_format_italics)
