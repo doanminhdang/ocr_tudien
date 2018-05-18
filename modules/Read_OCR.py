@@ -317,11 +317,20 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
 
     for k in range(len(doc.paragraphs)):
         line = doc.paragraphs[k]
-        paragraph_style_bold = line.style.font.bold
-        paragraph_style_italic = line.style.font.italic
+        # Make it compatible to Wordpad, this software removes all the styles
+        paragraph_style_bold = None
+        paragraph_style_italic = None
+        if line.style != None:
+            paragraph_style_bold = line.style.font.bold
+            paragraph_style_italic = line.style.font.italic
         word_texts = [part.text for part in line.runs]
-        character_style_bolds = [part.style.font.bold for part in line.runs]
-        character_style_italics = [part.style.font.italic for part in line.runs]
+        character_style_bolds = [None for part in line.runs]
+        character_style_italics = [None for part in line.runs]
+        for k_item in range(len(line.runs)):
+            part = line.runs[k_item]
+            if part.style != None:
+                character_style_bolds[k_item] = part.style.font.bold
+                character_style_italics[k_item] = part.style.font.italic
         character_font_bolds = [part.font.bold for part in line.runs]
         character_font_italics = [part.font.italic for part in line.runs]
         for k_item in range(len(word_texts)-1, 0, -1):
