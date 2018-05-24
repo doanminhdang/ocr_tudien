@@ -23,7 +23,7 @@ def check_series(text_list, set_list):
     """
     in_list = []
     for word in text_list:
-        all_words = word.split(',')
+        all_words = re.sub('\(.*?\)', '', word).split(',')
         component_in_list = [component.strip(' ') in set_list for component in all_words]
         this_word_in_list = all(component_in_list)
         in_list.append(this_word_in_list)
