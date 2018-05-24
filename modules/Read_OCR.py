@@ -19,7 +19,14 @@ import csv
 import re
 
 def check_series(text_list, set_list):
-    in_list = [word in set_list for word in text_list]
+    """Check whether all items in each text_list[k] are in set_list
+    """
+    in_list = []
+    for word in text_list:
+        all_words = word.split(',')
+        component_in_list = [component.strip(' ') in set_list for component in all_words]
+        this_word_in_list = all(component_in_list)
+        in_list.append(this_word_in_list)
     return in_list
 
 def check_field(text_list):
@@ -69,6 +76,13 @@ def read_format(paragraph_style_bold, character_style_bolds, character_font_bold
     
     return word_format_bolds, word_format_italics
 
+def remove_empty(list_text, *list_properties):
+    for k in range(len(list_text)-1, 0, -1):
+        if list_text[k] == '':
+            del(list_text[k])
+            for prop in list_properties:
+                del(prop[k])
+    
 def split_capital(phrase):
     """Split capital and small words.
     Capital words are only allowed at the first half of the phrase.
@@ -82,10 +96,31 @@ def split_capital(phrase):
     re_split_result = re.split('(\W)', phrase)
     words = list(filter(None, re_split_result))
     
+    for k_item in range(len(words)-1, 0, -1):
+            while len(words[k_item])>0 and words[k_item][0] == ',':
+                words[k_item-1] += ','
+                words[k_item] = words[k_item][1:]
+    for k_item in range(len(words)-1, 0, -1):
+        while len(words[k_item])>0 and words[k_item][0] == ' ':
+            words[k_item-1] += ' '
+            words[k_item] = words[k_item][1:]
+        
+    remove_empty(words)
+        
+    for k_item in range(len(words)-1, 0, -1):
+        if words[k_item][0] != ' ' and words[k_item-1][-1] != ' ':
+            words[k_item-1] = ''.join([words[k_item-1], words[k_item]])
+            del(words[k_item])
+
     flag_prev_word_capital = True
     for k in range(len(words)):
         if words[k].isupper() and flag_prev_word_capital:
-            format_capital.append(True)
+            if k>0 and words[k-1].rstrip(' ')[-1] != ',':
+                format_capital.append(False)
+                flag_prev_word_capital = False
+            else:
+                format_capital.append(True)
+            
         else:
             format_capital.append(False)
             flag_prev_word_capital = False
@@ -116,7 +151,7 @@ def merge_with_comment_phrase(words, case_capital, format_bold, format_italic):
     newformat_bold = list(format_bold)
     newformat_italic = list(format_italic)
     for k in range(len(words)-1,0,-1):
-        if len(newwords[k].strip(','))>0 and newwords[k].strip(',')[0]=='(' and newwords[k].strip(',')[-1]==')':
+        if len(newwords[k].strip(', '))>0 and newwords[k].strip(', ')[0]=='(' and newwords[k].strip(', ')[-1]==')':
             newwords[k-1] = ''.join([newwords[k-1], newwords[k]])
             del newwords[k]
             del newcase_capital[k]
@@ -333,6 +368,13 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
                 character_style_italics[k_item] = part.style.font.italic
         character_font_bolds = [part.font.bold for part in line.runs]
         character_font_italics = [part.font.italic for part in line.runs]
+        
+        remove_empty(word_texts, character_style_bolds, character_style_italics, character_font_bolds, character_font_italics)
+        
+        for k_item in range(len(word_texts)-1, 0, -1):
+            while len(word_texts[k_item])>0 and word_texts[k_item][0] == '&':
+                word_texts[k_item-1] += '&'
+                word_texts[k_item] = word_texts[k_item][1:]
         for k_item in range(len(word_texts)-1, 0, -1):
             while len(word_texts[k_item])>0 and word_texts[k_item][0] == ',':
                 word_texts[k_item-1] += ','
@@ -341,14 +383,26 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
             while len(word_texts[k_item])>0 and word_texts[k_item][0] == ' ':
                 word_texts[k_item-1] += ' '
                 word_texts[k_item] = word_texts[k_item][1:]
+        
+        remove_empty(word_texts, character_style_bolds, character_style_italics, character_font_bolds, character_font_italics)
+        
         for k_item in range(len(word_texts)-1, 0, -1):
-            if word_texts[k_item].strip() == '':
+            if word_texts[k_item][0] != ' ' and word_texts[k_item-1][-1] != ' ':
                 word_texts[k_item-1] = ''.join([word_texts[k_item-1], word_texts[k_item]])
-                del word_texts[k_item]
-                del character_style_bolds[k_item]
-                del character_style_italics[k_item]
-                del character_font_bolds[k_item]
-                del character_font_italics[k_item]
+                del(word_texts[k_item])
+                del(character_style_bolds[k_item])
+                del(character_style_italics[k_item])
+                del(character_font_bolds[k_item])
+                del(character_font_italics[k_item])
+            
+        #for k_item in range(len(word_texts)-1, 0, -1):
+            #if word_texts[k_item].strip() == '':
+                #word_texts[k_item-1] = ''.join([word_texts[k_item-1], word_texts[k_item]])
+                #del word_texts[k_item]
+                #del character_style_bolds[k_item]
+                #del character_style_italics[k_item]
+                #del character_font_bolds[k_item]
+                #del character_font_italics[k_item]
         word_format_bolds, word_format_italics = read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics)
         #print(word_texts)
         newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = re_parse(word_texts, word_format_bolds, word_format_italics)
