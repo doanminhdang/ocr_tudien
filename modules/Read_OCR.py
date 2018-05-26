@@ -395,14 +395,6 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
                 del(character_font_bolds[k_item])
                 del(character_font_italics[k_item])
             
-        #for k_item in range(len(word_texts)-1, 0, -1):
-            #if word_texts[k_item].strip() == '':
-                #word_texts[k_item-1] = ''.join([word_texts[k_item-1], word_texts[k_item]])
-                #del word_texts[k_item]
-                #del character_style_bolds[k_item]
-                #del character_style_italics[k_item]
-                #del character_font_bolds[k_item]
-                #del character_font_italics[k_item]
         word_format_bolds, word_format_italics = read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics)
         #print(word_texts)
         newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = re_parse(word_texts, word_format_bolds, word_format_italics)
@@ -425,17 +417,21 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
         is_good_type = check_type(type_word)
         is_good_field = check_field(field_word)
         for k_entry in range(len(de_word)):
-            if is_good_type[k_entry] != True:
-                number_type_issues += 1
-            if is_good_field[k_entry] != True:
-                number_field_issues += 1
-            if en_word[k_entry] == '':
-                number_en_issues += 1
-            if vi_word[k_entry] == '':
-                number_vi_issues += 1
             if is_good_type[k_entry] != True or is_good_field[k_entry] != True or en_word[k_entry] == '' or vi_word[k_entry] == '':
                 number_total_item_issues += 1
                 out_message += ' Attention - suspected problem with this item: ' + de_word[k_entry] + ' - ' + type_word[k_entry] + ' - ' + field_word[k_entry] + ' - ' + en_word[k_entry] + ' - ' + vi_word[k_entry] + '.'
+            if is_good_type[k_entry] != True:
+                number_type_issues += 1
+                out_message += '\n Check the type word.'
+            if is_good_field[k_entry] != True:
+                number_field_issues += 1
+                out_message += '\n Check the FIELD word.'
+            if en_word[k_entry] == '':
+                number_en_issues += 1
+                out_message += '\n English word is missing.'
+            if vi_word[k_entry] == '':
+                number_vi_issues += 1
+                out_message += '\n Vietnamese word is missing.'
         
         out_messages.append('Line ' + str(k+1) + ': ' + out_message)
         
