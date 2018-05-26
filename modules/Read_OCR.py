@@ -419,19 +419,19 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
         for k_entry in range(len(de_word)):
             if is_good_type[k_entry] != True or is_good_field[k_entry] != True or en_word[k_entry] == '' or vi_word[k_entry] == '':
                 number_total_item_issues += 1
-                out_message += '\m Attention - suspected problem with this item: ' + de_word[k_entry] + ' - ' + type_word[k_entry] + ' - ' + field_word[k_entry] + ' - ' + en_word[k_entry] + ' - ' + vi_word[k_entry] + '.'
+                out_message += '\nAttention - suspected problem with this item: ' + de_word[k_entry] + ' - ' + type_word[k_entry] + ' - ' + field_word[k_entry] + ' - ' + en_word[k_entry] + ' - ' + vi_word[k_entry] + '.'
             if is_good_type[k_entry] != True:
                 number_type_issues += 1
-                out_message += ' Check the type word.'
+                out_message += '\n Check the type word.'
             if is_good_field[k_entry] != True:
                 number_field_issues += 1
-                out_message += ' Check the FIELD word.'
+                out_message += '\n   Check the FIELD word.'
             if en_word[k_entry] == '':
                 number_en_issues += 1
-                out_message += ' English word is missing.'
+                out_message += '\n     English word is missing.'
             if vi_word[k_entry] == '':
                 number_vi_issues += 1
-                out_message += ' Vietnamese word is missing.'
+                out_message += '\n       Vietnamese word is missing.'
         
         out_messages.append('Line ' + str(k+1) + ': ' + out_message)
         
