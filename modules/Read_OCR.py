@@ -115,7 +115,7 @@ def split_capital(phrase):
     flag_prev_word_capital = True
     for k in range(len(words)):
         if words[k].isupper() and flag_prev_word_capital:
-            if k>0 and (words[k-1].rstrip(' ')[-1] != ',' or words[k-1].rstrip(' ')[-1] != ')'):
+            if k>0 and (words[k-1].rstrip(' ')[-1] != ',' and words[k-1].rstrip(' ')[-1] != ')'):
                 format_capital.append(False)
                 flag_prev_word_capital = False
             else:
@@ -126,38 +126,31 @@ def split_capital(phrase):
             flag_prev_word_capital = False
     return words, format_capital
 
-def merge_similar_series(words, case_capital, format_bold, format_italic):
-    newwords = list(words)
-    newcase_capital = list(case_capital)
-    newformat_bold = list(format_bold)
-    newformat_italic = list(format_italic)
+def merge_similar_series(words, *list_properties):
     for k in range(len(words)-1,0,-1):
-        if newcase_capital[k] == newcase_capital[k-1] \
-        and newformat_bold[k] == newformat_bold[k-1] \
-        and newformat_italic[k] == newformat_italic[k-1]: 
-            newwords[k-1] = ''.join([newwords[k-1], newwords[k]])
-            del newwords[k]
-            del newcase_capital[k]
-            del newformat_bold[k]
-            del newformat_italic[k]
-    return newwords, newcase_capital, newformat_bold, newformat_italic
+        same_flag = True
+        for type_format in list_properties:
+            same_flag = same_flag and (type_format[k] == type_format[k-1])
+        if same_flag:
+            words[k-1] = ''.join([words[k-1], words[k]])
+            del words[k]
+            for type_format in list_properties:
+                del type_format[k]
 
-def merge_with_comment_phrase(words, case_capital, format_bold, format_italic):
-    """If the word is in (), it should be a comment for the previous one,
+def merge_with_comment_phrase(words, *list_properties):
+    """If the starting word in phrase is in (), it should be a comment for the previous one,
     hence be added to the previous one.
     """
-    newwords = list(words)
-    newcase_capital = list(case_capital)
-    newformat_bold = list(format_bold)
-    newformat_italic = list(format_italic)
     for k in range(len(words)-1,0,-1):
-        if len(newwords[k].strip(', '))>0 and newwords[k].strip(', ')[0]=='(' and newwords[k].strip(', ')[-1]==')':
-            newwords[k-1] = ''.join([newwords[k-1], newwords[k]])
-            del newwords[k]
-            del newcase_capital[k]
-            del newformat_bold[k]
-            del newformat_italic[k]
-    return newwords, newcase_capital, newformat_bold, newformat_italic
+        if re.match('^(\(.*?\))', words[k].strip()):
+            words[k-1] = ''.join([words[k-1], re.search('( *\(.*?\))', words[k].strip()).groups()[0]])
+            words[k] = re.sub('(\(.*?\))', '', words[k])
+            if words[k].strip(', ') == '':
+                if words[k].strip() == ',':
+                    words[k-1] = ''.join([words[k-1], words[k]])
+                del words[k]
+                for type_format in list_properties:
+                    del type_format[k]
 
 def re_parse(word_texts, word_format_bolds, word_format_italics):
     """Fix the leftover mistake in the data parsed, some example items:
@@ -168,6 +161,8 @@ def re_parse(word_texts, word_format_bolds, word_format_italics):
     AB-Betrieb m Đ_TỬ dass AB mode chê'độ hạng AB, splitted into:
     ['AB-Betrieb', 'm', 'Đ_TỬ', 'dass AB', 'mode', 'chê'độ hạng', 'AB']
     """
+    merge_with_comment_phrase(word_texts, word_format_bolds, word_format_italics)
+    merge_similar_series(word_texts, word_format_bolds, word_format_italics)
     newword_texts = []
     newwordcase_capitals = []
     newword_format_bolds = []
@@ -179,16 +174,18 @@ def re_parse(word_texts, word_format_bolds, word_format_italics):
         newword_format_bolds.append(word_format_bolds[0])
         newword_format_italics.append(word_format_italics[0])
     for k in range(1, len(word_texts)):
-        phrase = word_texts[k]
-        words, wordcase_capital = split_capital(phrase)
+        if word_format_italics[k]:
+            words = [word_texts[k]]
+            wordcase_capital = [False]
+        else:
+            words, wordcase_capital = split_capital(word_texts[k])
         newword_texts.extend(words)
         newwordcase_capitals.extend(wordcase_capital)
         for n in range(len(words)):
             newword_format_bolds.append(word_format_bolds[k])
             newword_format_italics.append(word_format_italics[k])
-    newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = \
+    
     merge_with_comment_phrase(newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics)
-    newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = \
     merge_similar_series(newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics)
     return newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics
 
