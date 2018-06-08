@@ -115,7 +115,7 @@ def split_capital(phrase):
     flag_prev_word_capital = True
     for k in range(len(words)):
         if words[k].isupper() and flag_prev_word_capital:
-            if k>0 and words[k-1].rstrip(' ')[-1] != ',':
+            if k>0 and (words[k-1].rstrip(' ')[-1] != ',' or words[k-1].rstrip(' ')[-1] != ')'):
                 format_capital.append(False)
                 flag_prev_word_capital = False
             else:
