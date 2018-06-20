@@ -23,7 +23,8 @@ def check_series(text_list, set_list):
     """
     in_list = []
     for word in text_list:
-        all_words = re.sub('\(.*?\)', '', word).split(',')
+        all_words = re.sub('\(.*?\)', ',', word).split(',')
+        all_words = list(filter(None, all_words))
         component_in_list = [component.strip(' ') in set_list for component in all_words]
         this_word_in_list = all(component_in_list)
         in_list.append(this_word_in_list)
@@ -111,7 +112,7 @@ def split_capital(phrase):
         if words[k_item][0] != ' ' and words[k_item-1][-1] != ' ':
             words[k_item-1] = ''.join([words[k_item-1], words[k_item]])
             del(words[k_item])
-
+    
     flag_prev_word_capital = True
     for k in range(len(words)):
         if words[k].isupper() and flag_prev_word_capital:
@@ -146,8 +147,7 @@ def merge_with_comment_phrase(words, *list_properties):
             words[k-1] = ''.join([words[k-1], re.search('( *\(.*?\))', words[k].strip()).groups()[0]])
             words[k] = re.sub('(\(.*?\))', '', words[k])
             if words[k].strip(', ') == '':
-                if words[k].strip() == ',':
-                    words[k-1] = ''.join([words[k-1], words[k]])
+                words[k-1] = ''.join([words[k-1], words[k]])
                 del words[k]
                 for type_format in list_properties:
                     del type_format[k]
