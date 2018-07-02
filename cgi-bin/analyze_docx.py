@@ -152,9 +152,9 @@ if proceed_flag:
     csv_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '.csv')
     export_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '.xls')
     url_file_export = BASE_URL+'/'+DATA_DIR+'/'+relative_user_dir+'/'+OUTPUT_DIR+'/'+file_input_1 + '.xls'
-    log_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '_stat.txt')
-    url_file_log = BASE_URL+'/'+DATA_DIR+'/'+relative_user_dir+'/'+OUTPUT_DIR+'/'+file_input_1 + '_stat.txt'
-    
+    log_file_path = os.path.join(ABS_TOP_DIR, DATA_DIR, relative_user_dir, OUTPUT_DIR, file_input_1 + '_stats.txt')
+    url_file_log = BASE_URL+'/'+DATA_DIR+'/'+relative_user_dir+'/'+OUTPUT_DIR+'/'+file_input_1 + '_stats.txt'
+
     Read_OCR.readocr(file_1_path, csv_file_path, log_file_path)
     Csv_Excel.csv_to_xls(csv_file_path, export_file_path)
 

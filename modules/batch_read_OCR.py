@@ -22,6 +22,6 @@ for (dirname, dirs, files) in os.walk(source_dir):
             fullfilename = os.path.join(dirname,filename)
             csv_file_path = os.path.join(result_dir, filename_main + '.csv')
             export_file_path = os.path.join(result_dir, filename_main + '.xls')
-            log_file_path = os.path.join(result_dir, filename_main + '_stat.txt')
+            log_file_path = os.path.join(result_dir, filename_main + '_stats.txt')
             Read_OCR.readocr(fullfilename, csv_file_path, log_file_path)
             Csv_Excel.csv_to_xls(csv_file_path, export_file_path)
