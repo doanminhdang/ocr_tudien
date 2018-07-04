@@ -1,5 +1,9 @@
-# Usage: python batch_read_OCR.py source_dir_with_docx result_dir
-
+#!/usr/bin/env python
+"""
+Run the script Read_OCR for all files in a directory
+Usage:
+python batch_read_OCR.py source_dir_with_docx result_dir
+"""
 import sys
 import os
 
@@ -16,8 +20,8 @@ if not os.path.exists(result_dir):
 for (dirname, dirs, files) in os.walk(source_dir):
     for filename in files:
         filename_main, file_extension = os.path.splitext(filename)
-        print filename_main
-        print file_extension
+        print(filename_main)
+        print(file_extension)
         if file_extension == '.docx':
             fullfilename = os.path.join(dirname,filename)
             csv_file_path = os.path.join(result_dir, filename_main + '.csv')
