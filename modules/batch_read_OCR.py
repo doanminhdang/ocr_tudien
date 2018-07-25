@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Run the script Read_OCR for all files in a directory
+Compatible: Python 2.6 to Python 3
 Usage:
 python batch_read_OCR.py source_dir_with_docx result_dir
 """

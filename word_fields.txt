@@ -38,6 +38,7 @@ NLPH_THẠCH
 ÔN_BIỂN
 ÔTÔ
 P_LIỆU
+PH_LIỆU
 PTN
 Q_HỌC
 S_CHẾ
