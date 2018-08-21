@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+	<title>Bóc tách dữ liệu Từ điển Sinh học Anh Việt</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+</head>
+<body></body>
+</html>
+<h1>Bóc tách dữ liệu file DOCX của <b>Từ điển Sinh học Anh Việt</b> để cho vào bảng thuật ngữ</h1>
+<font color="#3333ff"><h2>Lưu ý: trang web chỉ bóc tách theo quy ước format, người dùng cần tự kiểm tra chính tả</h2></font>
+Định dạng từng dòng mà phần mềm chờ đợi:
+<p><b>từ tiếng Anh <i>1. từ tiếng Việt</i> <i>2. từ tiếng Việt 2</i></b>
+<p><font color="#ff3333"><b>Chữ in nghiêng là thuộc tính quan trọng, còn in đậm thì không quan trọng (nhưng từng cụm phải có cùng định dạng)</b></font></p>
+<br />
+<h2>Hãy chọn file DOCX để tải lên:</h2>
+<form action="../cgi-bin/analyze_docx_tdshav.py" method="post" enctype="multipart/form-data">
+IMPORTANT: Bạn có muốn XÓA file tải lên sau khi nó được xử lý xong? (kết quả đầu ra sẽ vẫn được lưu trên trang web này)<br />
+<input type="radio" name="delete_data" value="yes" /> (default) Có, xóa dữ liệu tôi tải lên sau khi đã xử lý xong
+<input type="radio" name="delete_data" value="no" /> Không, dữ liệu tải lên sẽ được lưu lại ở trang web để phục vụ việc debug
+<br />
+<br />
+File sẽ tải lên: <input type="file" name="upload1" />
+</select>
+
+<input type="submit" value="Upload"/></form>
+<!-- Run from Linux terminal in the folder containing cgi-bin:
+python3 -m http.server --bind localhost --cgi 8000
+or with Python2:
+python -m CGIHTTPServer 8000 .
+Then access this web page on localhost:8000
+ -->

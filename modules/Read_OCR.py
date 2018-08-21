@@ -327,6 +327,68 @@ def analyze_line(word_texts, wordcase_capitals, word_format_bolds, word_format_i
 #print(en_word)
 #print(vi_word)
 
+def analyze_line_tudien_sinhhoc(word_texts, wordcase_capitals, word_format_bolds, word_format_italics):
+    """Algorithm to analyze a line in Tu dien Sinh hoc:
+    A line needs at least 2 words. If not,  neglect the line.
+    First phrase non-italic words is the English words.
+    Second phrase, italic, is the Vietnamse words.
+    Split items for new Vietnamese meaning (started by 1. or 2. ...).
+    
+    Example:
+    aspect 1. quang cảnh 2. sắc thái
+    """
+    en_word = []
+    vi_word = []
+    out_message = ''
+    #out_message = '-'.join(word_texts)
+    #out_message += '\nCapital: '
+    #out_message += '-'.join([str(item) for item in wordcase_capitals])
+    #out_message += '\nBold: '
+    #out_message += '-'.join([str(item) for item in word_format_bolds])
+    #out_message += '\nItalic: '
+    #out_message += '-'.join([str(item) for item in word_format_italics])
+    #out_message += '\n'
+    
+    if ''.join(word_texts).strip() == '':
+        out_message += 'Blank line, skipped.'
+        return en_word, vi_word, out_message
+    if len(word_texts) < 2:
+        out_message += 'ERROR: Line has less than 2 elements, skipped.'
+        if len(word_texts) >= 1:
+            out_message += ' This line starts with: ' + word_texts[0]
+        return en_word, vi_word, out_message
+    item = 0
+    en_word.append('')
+    vi_word.append('')
+    for k in range(len(word_texts)):
+        if word_format_italics[k] != True:
+            en_word[item] += ' '+word_texts[k]
+        else:
+            vi_word[item] += ' '+word_texts[k]
+        # Parse multiple Vietnamese words, example: t='1. miệng giác 2. lỗ chân 3. ổ khớp 4. múi nhau'
+        if vi_word[item].find('1') != -1:
+            temp_vi_words = vi_word[item]
+            number=1
+            old_number_pos=temp_vi_words.find(str(number))
+            number+=1
+            number_pos=temp_vi_words.find(str(number))
+            while number_pos != -1:
+                # when the next number (== Vietnamese meaning) is available: split this meaning
+                vi_word[item] = temp_vi_words[old_number_pos+2:number_pos]
+                item += 1
+                en_word.append(en_word[item-1])
+                vi_word.append('')
+                old_number_pos=number_pos
+                number+=1
+                number_pos=temp_vi_words.find(str(number))
+            vi_word[item] = temp_vi_words[old_number_pos+2:]  # the last part
+            
+    en_word = [word.strip().strip(',') for word in en_word]
+    vi_word = [word.strip().strip(',') for word in vi_word]
+    out_message += 'Line has been analyzed successfully to ' + str(item+1) + ' item(s).'
+    return en_word, vi_word, out_message
+
+
 def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
 
     de_words = []
@@ -483,6 +545,142 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
     
     #excelFile = exportFile[:-4] + '.xls'
     #Csv_Excel.csv_to_xls(exportFile, excelFile)
+
+def readocr_tudien_sinhhoc(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
+
+    en_words = []
+    vi_words = []
+    out_messages = []
+    
+    number_items_in_line = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    
+    number_blank_lines = 0
+    number_en_issues = 0
+    number_vi_issues = 0
+    number_total_item_issues = 0
+    
+    doc = docx.Document(inputFile)
+
+    for k in range(len(doc.paragraphs)):
+        line = doc.paragraphs[k]
+        # Make it compatible to Wordpad, this software removes all the styles
+        paragraph_style_bold = None
+        paragraph_style_italic = None
+        if line.style != None:
+            paragraph_style_bold = line.style.font.bold
+            paragraph_style_italic = line.style.font.italic
+        word_texts = [part.text for part in line.runs]
+        character_style_bolds = [None for part in line.runs]
+        character_style_italics = [None for part in line.runs]
+        for k_item in range(len(line.runs)):
+            part = line.runs[k_item]
+            if part.style != None:
+                character_style_bolds[k_item] = part.style.font.bold
+                character_style_italics[k_item] = part.style.font.italic
+        character_font_bolds = [part.font.bold for part in line.runs]
+        character_font_italics = [part.font.italic for part in line.runs]
+        
+        remove_empty(word_texts, character_style_bolds, character_style_italics, character_font_bolds, character_font_italics)
+        
+        for k_item in range(len(word_texts)-1, 0, -1):
+            while len(word_texts[k_item])>0 and word_texts[k_item][0] == '&':
+                word_texts[k_item-1] += '&'
+                word_texts[k_item] = word_texts[k_item][1:]
+        for k_item in range(len(word_texts)-1, 0, -1):
+            while len(word_texts[k_item])>0 and word_texts[k_item][0] == ',':
+                word_texts[k_item-1] += ','
+                word_texts[k_item] = word_texts[k_item][1:]
+        for k_item in range(len(word_texts)-1, 0, -1):
+            while len(word_texts[k_item])>0 and word_texts[k_item][0] == ' ':
+                word_texts[k_item-1] += ' '
+                word_texts[k_item] = word_texts[k_item][1:]
+        
+        remove_empty(word_texts, character_style_bolds, character_style_italics, character_font_bolds, character_font_italics)
+        
+        for k_item in range(len(word_texts)-1, 0, -1):
+            if word_texts[k_item][0] != ' ' and word_texts[k_item-1][-1] != ' ':
+                word_texts[k_item-1] = ''.join([word_texts[k_item-1], word_texts[k_item]])
+                del(word_texts[k_item])
+                del(character_style_bolds[k_item])
+                del(character_style_italics[k_item])
+                del(character_font_bolds[k_item])
+                del(character_font_italics[k_item])
+            
+        word_format_bolds, word_format_italics = read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics)
+        #print(word_texts)
+        newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = re_parse(word_texts, word_format_bolds, word_format_italics)
+        #print(newword_texts)
+        en_word, vi_word, out_message = analyze_line_tudien_sinhhoc(newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics)
+        #print(en_word)
+        #print(vi_word)
+        en_words.extend(en_word)
+        vi_words.extend(vi_word)
+        
+        # Accumulative statistics
+        if line.text.strip() == '':
+            number_blank_lines += 1
+        number_items_in_line[len(en_word)%11] += 1
+
+        for k_entry in range(len(en_word)):
+            if en_word[k_entry] == '' or vi_word[k_entry] == '':
+                number_total_item_issues += 1
+                out_message += '\nAttention - suspected problem with this item: ' + en_word[k_entry] + ' - ' + vi_word[k_entry] + '.'
+            if en_word[k_entry] == '':
+                number_en_issues += 1
+                out_message += '\n     English word is missing.'
+            if vi_word[k_entry] == '':
+                number_vi_issues += 1
+                out_message += '\n       Vietnamese word is missing.'
+        
+        out_messages.append('Line ' + str(k+1) + ': ' + out_message)
+        
+        # Note the meaning of line.style.font.bold, line.runs[0].style.font.bold, and line.runs[0].font.bold:
+        # line.style.font.bold: on top level of the hierarchy
+        # line.runs[0].style.font.bold: second level, it inherit upper level if "None", override if "True" or "False"
+        # line.runs[0].font.bold: third level, directly applied to character if "True" or "False", inherit if "None"
+        #
+        # http://python-docx.readthedocs.io/en/latest/user/styles-using.html
+        # Many font properties are tri-state, meaning they can take the values True, False, and None.
+        # True means the property is “on”, False means it is “off”.
+        # Conceptually, the None value means “inherit”. 
+        # Because a style exists in an inheritance hierarchy, it is important 
+        # to have the ability to specify a property at the right place in the hierarchy,
+        # generally as far up the hierarchy as possible.
+        # For example, if all headings should be in the Arial typeface,
+        # it makes more sense to set that property on the Heading 1 style
+        # and have Heading 2 inherit from Heading 1.
+    
+    # Later: output directly the result from each line to the CSV file
+    table = []
+    for k in range(len(en_words)):
+        table.append([en_words[k], vi_words[k]])
+
+    WriteTableCsv(exportFile, table)
+    with open(logFile, 'wt') as txtfile:
+        txtfile.write("Total number of lines processed: %d\n" % len(doc.paragraphs))
+        txtfile.write("  with number of blank lines: %d\n" % number_blank_lines)
+        txtfile.write("  \n*Number of lines failed to process (0 item): %d\n\n" % number_items_in_line[0])
+        txtfile.write("  Number of lines with 1 item: %d\n" % number_items_in_line[1])
+        txtfile.write("  Number of lines with 2 items: %d\n" % number_items_in_line[2])
+        txtfile.write("  Number of lines with 3 items: %d\n" % number_items_in_line[3])
+        txtfile.write("  Number of lines with 4 items: %d\n" % number_items_in_line[4])
+        txtfile.write("  Number of lines with 5 items: %d\n" % number_items_in_line[5])
+        txtfile.write("  Number of lines with 6 items: %d\n" % number_items_in_line[6])
+        txtfile.write("  Number of lines with 7 items: %d\n" % number_items_in_line[7])
+        txtfile.write("  Number of lines with 8 items: %d\n" % number_items_in_line[8])
+        txtfile.write("  Number of lines with 9 items: %d\n" % number_items_in_line[9])
+        txtfile.write("  Number of lines with 10 items: %d\n" % number_items_in_line[10])
+                
+        txtfile.write("\nTotal items obtained: %d\n" % len(en_words))
+        txtfile.write("\n*Number of items with issues: %d\n" % number_total_item_issues)
+        txtfile.write("  in which, there are:\n")
+        txtfile.write("    + %d items without English word\n" % number_en_issues)
+        txtfile.write("    + %d items without Vietnamese word\n" % number_vi_issues)
+        txtfile.write("\n-----\n\n")
+        
+        for item in out_messages:
+            txtfile.write("%s\n" % item)
+
 
 # Main operation, when calling: python Read_OCR.py input.docx output.csv
 if __name__ == "__main__":
