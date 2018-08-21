@@ -28,5 +28,5 @@ for (dirname, dirs, files) in os.walk(source_dir):
             csv_file_path = os.path.join(result_dir, filename_main + '.csv')
             export_file_path = os.path.join(result_dir, filename_main + '.xls')
             log_file_path = os.path.join(result_dir, filename_main + '_stats.txt')
-            Read_OCR.readocr_tudien_sinhhoc(fullfilename, csv_file_path, log_file_path)
+            Read_OCR.readocr_physics_NDH(fullfilename, csv_file_path, log_file_path)
             Csv_Excel.csv_to_xls(csv_file_path, export_file_path)
