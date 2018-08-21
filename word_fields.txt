@@ -3,6 +3,7 @@ B_BÌ
 C_DẺO
 C_THÁI
 CH_LƯỢNG
+C_LƯỢNG
 CN_HOÁ
 CNH_NHÂN
 CNSX
