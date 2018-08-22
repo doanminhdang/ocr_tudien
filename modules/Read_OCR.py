@@ -354,28 +354,36 @@ def analyze_line_tudien_sinhhoc(word_texts, wordcase_capitals, word_format_bolds
     item = 0
     en_word.append('')
     vi_word.append('')
+    vi_word_flag = False
     for k in range(len(word_texts)):
         if word_format_italics[k] != True:
-            en_word[item] += ' '+word_texts[k]
+            if vi_word_flag != False:
+                item += 1
+                en_word.append(word_texts[k])
+                vi_word.append('')
+                vi_word_flag = False
+            else:
+                en_word[item] += ' '+word_texts[k]
         else:
             vi_word[item] += ' '+word_texts[k]
-        # Parse multiple Vietnamese words, example: t='1. miệng giác 2. lỗ chân 3. ổ khớp 4. múi nhau'
-        if vi_word[item].find('1') != -1:
-            temp_vi_words = vi_word[item]
-            number=1
-            old_number_pos=temp_vi_words.find(str(number))
-            number+=1
-            number_pos=temp_vi_words.find(str(number))
-            while number_pos != -1:
-                # when the next number (== Vietnamese meaning) is available: split this meaning
-                vi_word[item] = temp_vi_words[old_number_pos+2:number_pos]
-                item += 1
-                en_word.append(en_word[item-1])
-                vi_word.append('')
-                old_number_pos=number_pos
+            vi_word_flag = True
+            # Parse multiple Vietnamese words, example: t='1. miệng giác 2. lỗ chân 3. ổ khớp 4. múi nhau'
+            if vi_word[item].find('1') != -1:
+                temp_vi_words = vi_word[item]
+                number=1
+                old_number_pos=temp_vi_words.find(str(number))
                 number+=1
                 number_pos=temp_vi_words.find(str(number))
-            vi_word[item] = temp_vi_words[old_number_pos+2:]  # the last part
+                while number_pos != -1:
+                    # when the next number (== Vietnamese meaning) is available: split this meaning
+                    vi_word[item] = temp_vi_words[old_number_pos+2:number_pos]
+                    item += 1
+                    en_word.append(en_word[item-1])
+                    vi_word.append('')
+                    old_number_pos=number_pos
+                    number+=1
+                    number_pos=temp_vi_words.find(str(number))
+                vi_word[item] = temp_vi_words[old_number_pos+2:]  # the last part
             
     en_word = [word.strip().strip(',') for word in en_word]
     vi_word = [word.strip().strip(',') for word in vi_word]
