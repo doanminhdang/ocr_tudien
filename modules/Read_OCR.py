@@ -599,6 +599,15 @@ def readocr(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
     #Csv_Excel.csv_to_xls(exportFile, excelFile)
 
 def readocr_tudien_sinhhoc(inputFile, exportFile = 'result.csv', logFile = 'log.txt'):
+    
+    with open('tdshav_letters_incorrect.txt', 'rt') as search_file:
+        search_text = search_file.readlines()
+    search_text = [item.strip('\n') for item in search_text]
+    
+    with open('tdshav_letters_correct.txt', 'rt') as replace_file:
+        replace_text = replace_file.readlines()
+    replace_text = [item.strip('\n') for item in replace_text]
+    
 
     en_words = []
     vi_words = []
@@ -657,7 +666,11 @@ def readocr_tudien_sinhhoc(inputFile, exportFile = 'result.csv', logFile = 'log.
                 del(character_style_italics[k_item])
                 del(character_font_bolds[k_item])
                 del(character_font_italics[k_item])
-            
+        
+        # replace the series of letters for Vietnamese
+        for k_letter in range(len(search_text)):
+            word_texts = [text_item.replace(search_text[k_letter], replace_text[k_letter]) for text_item in word_texts]
+        
         word_format_bolds, word_format_italics = read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics)
         #print(word_texts)
         newword_texts, newwordcase_capitals, newword_format_bolds, newword_format_italics = re_parse(word_texts, word_format_bolds, word_format_italics)
@@ -775,13 +788,17 @@ def readocr_physics_NDH(inputFile, exportFile = 'result.csv', logFile = 'log.txt
         remove_empty(word_texts, character_style_bolds, character_style_italics, character_font_bolds, character_font_italics)
         
         for k_item in range(len(word_texts)-1, 0, -1):
-            if word_texts[k_item][0] != ' ' and word_texts[k_item-1][-1] != ' ':
-                word_texts[k_item-1] = ''.join([word_texts[k_item-1], word_texts[k_item]])
-                del(word_texts[k_item])
-                del(character_style_bolds[k_item])
-                del(character_style_italics[k_item])
-                del(character_font_bolds[k_item])
-                del(character_font_italics[k_item])
+            #print k_item
+            #print 'item'+word_texts[k_item]+'item'
+            #print 'item-1'+word_texts[k_item-1]+'item-1'
+            if word_texts[k_item][0] != ' ':
+                if word_texts[k_item-1] == '' or word_texts[k_item-1][-1] != ' ':
+                    word_texts[k_item-1] = ''.join([word_texts[k_item-1], word_texts[k_item]])
+                    del(word_texts[k_item])
+                    del(character_style_bolds[k_item])
+                    del(character_style_italics[k_item])
+                    del(character_font_bolds[k_item])
+                    del(character_font_italics[k_item])
             
         word_format_bolds, word_format_italics = read_format(paragraph_style_bold, character_style_bolds, character_font_bolds, paragraph_style_italic, character_style_italics, character_font_italics)
         #print(word_texts)
