@@ -368,12 +368,12 @@ def analyze_line_tudien_sinhhoc(word_texts, wordcase_capitals, word_format_bolds
             vi_word[item] += ' '+word_texts[k]
             vi_word_flag = True
             # Parse multiple Vietnamese words, example: t='1. miệng giác 2. lỗ chân 3. ổ khớp 4. múi nhau'
-            if vi_word[item].find('1') != -1:
+            if vi_word[item].find('1.') != -1:
                 temp_vi_words = vi_word[item]
                 number=1
-                old_number_pos=temp_vi_words.find(str(number))
+                old_number_pos=temp_vi_words.find(str(number)+'.')
                 number+=1
-                number_pos=temp_vi_words.find(str(number))
+                number_pos=temp_vi_words.find(str(number)+'.')
                 while number_pos != -1:
                     # when the next number (== Vietnamese meaning) is available: split this meaning
                     vi_word[item] = temp_vi_words[old_number_pos+2:number_pos]
@@ -382,7 +382,7 @@ def analyze_line_tudien_sinhhoc(word_texts, wordcase_capitals, word_format_bolds
                     vi_word.append('')
                     old_number_pos=number_pos
                     number+=1
-                    number_pos=temp_vi_words.find(str(number))
+                    number_pos=temp_vi_words.find(str(number)+'.')
                 vi_word[item] = temp_vi_words[old_number_pos+2:]  # the last part
             
     en_word = [word.strip().strip(',') for word in en_word]
