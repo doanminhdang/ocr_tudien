@@ -44,7 +44,8 @@ text_to_move = [u'(các)',
                 u'(tờ)',
                 u'(loại)',
                 u'(mạch)',
-                u'(phụ)'
+                u'(phụ)',
+                u'(những)'
                 ]
 
 def post_process_xls(xlsFile, csvFile, new_xlsFile, reportFile):
@@ -55,6 +56,9 @@ def post_process_xls(xlsFile, csvFile, new_xlsFile, reportFile):
         text_writer = csv.writer(file_in, delimiter='\t', quoting=csv.QUOTE_ALL)
         for rownum in range(work_sheet.nrows):
             text = work_sheet.row_values(rownum)
+            # Create an empty column on the left of Vietnamese column
+            text.append(text[4])
+            text[4] = ''
             for word in text_to_move:
                 if re.search(re.escape(word)+r'$', text[3]):
                     text[3] = re.sub(re.escape(word)+r'$', '', text[3]).strip()
